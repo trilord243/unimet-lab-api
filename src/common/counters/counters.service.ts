@@ -4,8 +4,13 @@ import { MongoRepository } from "typeorm";
 import { Counter } from "./counter.entity";
 
 /**
- * Genera códigos secuenciales atómicamente usando findOneAndUpdate con $inc.
+ * Genera códigos secuenciales atómicamente.
  * Format: PREFIX-0001, PREFIX-0002, etc.
+ *
+ * Implementación: usa updateOne (atómico) y luego findOneBy para leer
+ * el valor. No dependemos del wrapper de findOneAndUpdate cuyo formato
+ * varía entre versiones del driver y causa ambigüedad con nuestro
+ * campo llamado "value".
  */
 @Injectable()
 export class CountersService {
@@ -14,26 +19,18 @@ export class CountersService {
     private readonly repo: MongoRepository<Counter>,
   ) {}
 
-  /**
-   * Incrementa el contador y devuelve el código formateado.
-   * @param name Nombre del contador (ej: "reagents")
-   * @param prefix Prefijo del código (ej: "REAC")
-   * @param padLength Longitud mínima del número (default 4 → 0001)
-   */
   async nextCode(
     name: string,
     prefix: string,
     padLength = 4,
   ): Promise<string> {
-    // @ts-ignore - MongoDB driver method
-    const result = await this.repo.findOneAndUpdate(
+    await this.repo.updateOne(
       { name },
       { $inc: { value: 1 } },
-      { upsert: true, returnDocument: "after" },
+      { upsert: true },
     );
-    // Some driver versions return the doc directly, others wrap in { value }
-    const doc = result?.value ?? result;
-    const num = doc?.value ?? 1;
+    const current = await this.repo.findOneBy({ name } as any);
+    const num = current?.value ?? 1;
     return `${prefix}-${String(num).padStart(padLength, "0")}`;
   }
 }
