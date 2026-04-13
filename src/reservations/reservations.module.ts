@@ -6,6 +6,7 @@ import { ReagentRequest } from "./reagent-request.entity";
 import { ReservationsService } from "./reservations.service";
 import { ReservationsController } from "./reservations.controller";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { ReagentsModule } from "../reagents/reagents.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NotificationsModule } from "../notifications/notifications.module";
       ReagentRequest,
     ]),
     NotificationsModule,
+    ReagentsModule,
   ],
   providers: [ReservationsService],
   controllers: [ReservationsController],

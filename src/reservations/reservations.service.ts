@@ -13,6 +13,7 @@ import { CreateSpaceReservationDto } from "./dto/create-space-reservation.dto";
 import { CreateEquipmentReservationDto } from "./dto/create-equipment-reservation.dto";
 import { CreateReagentRequestDto } from "./dto/create-reagent-request.dto";
 import { NotificationsService } from "../notifications/notifications.service";
+import { ReagentsService } from "../reagents/reagents.service";
 
 /**
  * Servicio unificado de reservas:
@@ -34,6 +35,7 @@ export class ReservationsService {
     @InjectRepository(ReagentRequest)
     private readonly reagentsRepo: MongoRepository<ReagentRequest>,
     private readonly notifications: NotificationsService,
+    private readonly reagents: ReagentsService,
   ) {}
 
   // -------- ESPACIOS --------
@@ -152,14 +154,26 @@ export class ReservationsService {
     return this.reagentsRepo.find({ where: filter as any });
   }
 
-  async approveReagentRequest(id: string, adminId: string) {
+  async approveReagentRequest(id: string, adminId: string, adminEmail?: string) {
     const r = await this.reagentsRepo.findOneBy({ _id: new ObjectId(id) });
     if (!r) throw new NotFoundException("Solicitud de reactivo no encontrada");
     r.status = "approved";
     r.resolvedBy = adminId;
     r.updatedAt = new Date();
     const saved = await this.reagentsRepo.save(r);
-    // TODO: descontar quantity del Reagent en inventario
+
+    // Descontar del inventario y registrar en historial
+    try {
+      await this.reagents.consumeStock(
+        r.reagentId,
+        r.quantity,
+        `Aprobación de solicitud #${saved._id.toString().slice(-6)}`,
+        { userId: adminId, userName: adminEmail },
+      );
+    } catch (e) {
+      // No fallar la aprobación si el consumo de stock falla
+    }
+
     await this.notifications.notifyReservationResolved("reagent", saved);
     return saved;
   }

@@ -9,6 +9,10 @@ export class Reagent {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  /** Código único de activo (REAC-0001) asignado al crear. */
+  @Column({ nullable: true })
+  assetCode?: string;
+
   @Column()
   name: string;
 

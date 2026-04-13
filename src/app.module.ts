@@ -32,6 +32,11 @@ import { WebSocketModule } from "./websocket/websocket.module";
 // Analytics
 import { AnalyticsModule } from "./analytics/analytics.module";
 
+// Counters + audit + assets
+import { CountersModule } from "./common/counters/counters.module";
+import { InventoryHistoryModule } from "./inventory-history/inventory-history.module";
+import { AssetsModule } from "./assets/assets.module";
+
 @Module({
   imports: [
     ...(process.env.NODE_ENV === "test"
@@ -63,6 +68,9 @@ import { AnalyticsModule } from "./analytics/analytics.module";
           NotificationsModule,
           WebSocketModule,
           AnalyticsModule,
+          CountersModule,
+          InventoryHistoryModule,
+          AssetsModule,
         ]),
   ],
   controllers: [AppController],

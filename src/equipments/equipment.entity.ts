@@ -6,6 +6,9 @@ export class Equipment {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  @Column({ nullable: true })
+  assetCode?: string;
+
   @Column()
   name: string;
 

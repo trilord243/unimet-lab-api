@@ -118,7 +118,11 @@ export class ReservationsController {
   @Patch("reagents/:id/approve")
   @Roles("professor", "superadmin")
   approveReagent(@Param("id") id: string, @Req() req: any) {
-    return this.service.approveReagentRequest(id, req.user.userId);
+    return this.service.approveReagentRequest(
+      id,
+      req.user.userId,
+      req.user.email,
+    );
   }
 
   @Patch("reagents/:id/reject")
